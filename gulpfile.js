@@ -8,21 +8,6 @@ var gulp = require('gulp'),
     fileinclude = require('gulp-file-include'),
     cleanCSS = require('gulp-clean-css');
 
-gulp.task('minify-css', function() {
-  return gulp.src('development/assets/stylesheets/css/**/*.css')
-    .pipe(cleanCSS())
-    .pipe(gulp.dest('build/assets/css/'));
-});
-
-gulp.task('fileinclude', function() {
-  gulp.src(['development/**/*.html'])
-    .pipe(fileinclude({
-      prefix: '@@',
-      basepath: '@file'
-    }))
-    .pipe(gulp.dest('build/'));
-});
-
 
 gulp.task('connect', function() {
   connect.server({
@@ -35,30 +20,61 @@ gulp.task('connect', function() {
   });
 });
  
+
+
+gulp.task('minify-css', function() {
+  return gulp.src('development/assets/stylesheets/css/**/*.css')
+    .pipe(cleanCSS())
+    .pipe(gulp.dest('staging/assets/css/'));
+});
+
+gulp.task('fileinclude', function() {
+  gulp.src(['development/**/*.html'])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(gulp.dest('staging/'))
+    .pipe(gulp.dest('production/'));
+});
+
+
+
   
 gulp.task('html', function() {
 	return gulp.src(['development/**/*.html', '!development/includes/**/*.html'])
-	.pipe(gulp.dest('build/'));
-
+  .pipe(connect.reload())
+  .pipe(gulp.dest('staging/'));
 });
 
 gulp.task("sass", function() {
 	return gulp.src('development/assets/stylesheets/sass/**/*.scss')
 		.pipe(sass())
 		.pipe(concatCss("css.css"))
-		.pipe(gulp.dest('development/assets/stylesheets/css/'))
+		.pipe(gulp.dest('staging/assets/stylesheets/css/'))
     .pipe(minify())
-		.pipe(gulp.dest('build/assets/css/'))
-		.pipe(connect.reload());
+		.pipe(connect.reload())
+  .pipe(gulp.dest('staging/'))
 });
+
+
 
 
 
 gulp.task('scripts', function() {
 	return gulp.src('development/assets/**/*.js')
    .pipe(uglify())
-	.pipe(gulp.dest('build/assets/'))
+	.pipe(gulp.dest('staging/assets/'))
 });
+
+ 
+gulp.task('createbuild', function(){
+  return gulp.src(['development/assets/stylesheets/css/**/*.css', 'development/assets/**/*.js', 'development/assets/stylesheets/sass/**/*.scss', 'development/**/*.html', '!development/includes/**/*.html'])
+  .pipe(sass())
+  .pipe(gulp.dest('production/'))
+})
+
+
 
 gulp.task('watch', function() {
 	gulp.watch('development/assets/**/*.scss', ['sass']);
